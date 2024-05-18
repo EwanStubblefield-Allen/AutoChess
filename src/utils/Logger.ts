@@ -6,8 +6,8 @@ function log(type: 'log' | 'error' | 'warn' | 'trace', content: Array<string | E
     console[type](`[${type}] :: ${new Date().toLocaleTimeString()} :: `, ...content)
   } else {
     switch (type) {
+      // case 'assert':
       case 'log':
-        // case 'assert':
         return
     }
     // TODO SEND LOGS TO EXTERNAL SERVICE
