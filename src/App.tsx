@@ -24,6 +24,7 @@ import {
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable'
 import './assets/App.css'
+import { logger } from './utils/Logger'
 
 export default function App() {
   const defaultPieces = [
@@ -35,25 +36,29 @@ export default function App() {
     { id: 'King', tag: <Icon path={mdiChessKing}></Icon> }
   ]
   const [boardPieces, setBoardPieces] = useState<ChessPiece[]>([
-    { id: 1, tag: <></> },
-    { id: 2, tag: <></> },
-    { id: 3, tag: <></> },
-    { id: 4, tag: <></> },
-    { id: 5, tag: <></> },
-    { id: 6, tag: <></> },
-    { id: 7, tag: <></> },
-    { id: 8, tag: <></> },
-    { id: 9, tag: <></> },
-    { id: 10, tag: <></> },
-    { id: 11, tag: <></> },
-    { id: 12, tag: <></> },
-    { id: 13, tag: <></> },
-    { id: 14, tag: <></> },
-    { id: 15, tag: <></> },
-    { id: 16, tag: <></> }
+    { id: 1, tag: null },
+    { id: 2, tag: null },
+    { id: 3, tag: null },
+    { id: 4, tag: null },
+    { id: 5, tag: null },
+    { id: 6, tag: null },
+    { id: 7, tag: null },
+    { id: 8, tag: null },
+    { id: 9, tag: null },
+    { id: 10, tag: null },
+    { id: 11, tag: null },
+    { id: 12, tag: null },
+    { id: 13, tag: null },
+    { id: 14, tag: null },
+    { id: 15, tag: null },
+    { id: 16, tag: null }
   ])
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 0.01
+      }
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates
     })
@@ -81,6 +86,15 @@ export default function App() {
     })
   }
 
+  function removePiece(index: number) {
+    logger.log('remove')
+    setBoardPieces(pieces => {
+      const temp = [...pieces]
+      temp[index].tag = null
+      return temp
+    })
+  }
+
   return (
     <>
       <header className="pt-4 text-center">
@@ -98,7 +112,7 @@ export default function App() {
                 onDragEnd={handleDragEnd}>
                 <SortableContext items={boardPieces} strategy={rectSwappingStrategy}>
                   {boardPieces.map(piece => (
-                    <SortableItem key={piece.id} id={piece.id} tag={piece.tag} />
+                    <SortableItem key={piece.id} piece={piece} removePiece={removePiece} />
                   ))}
                 </SortableContext>
               </DndContext>
@@ -117,7 +131,9 @@ export default function App() {
                   onClick={() => addPiece(piece.tag)}
                   key={piece.id}
                   className={
-                    i % 2 == 1 ? 'col-2 d-flex chess-tile bg-dark' : 'col-2 d-flex chess-tile'
+                    i % 2 == 1
+                      ? 'col-2 d-flex chess-tile selectable bg-dark'
+                      : 'col-2 d-flex chess-tile selectable'
                   }>
                   {piece.tag}
                 </div>
