@@ -1,5 +1,7 @@
+import { ReactElement, useState } from 'react'
+import { ChessPiece } from './interfaces/chessPiece'
 import Icon from '@mdi/react'
-import './assets/App.css'
+import SortableItem from './components/sortableItem'
 import {
   mdiChessBishop,
   mdiChessKing,
@@ -21,9 +23,7 @@ import {
   rectSwappingStrategy,
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable'
-import { useState } from 'react'
-import SortableItem from './components/sortableItem'
-import { ChessPiece } from './interfaces/chessPiece'
+import './assets/App.css'
 
 export default function App() {
   const defaultPieces = [
@@ -59,6 +59,28 @@ export default function App() {
     })
   )
 
+  function handleDragEnd({ active, over }: any) {
+    if (active.id !== over.id) {
+      setBoardPieces(items => {
+        const oldIndex = active.id - 1
+        const newIndex = over.id - 1
+        const temp = [...items]
+        temp[oldIndex].id = over.id
+        temp[newIndex].id = active.id
+        ;[temp[oldIndex], temp[newIndex]] = [temp[newIndex], temp[oldIndex]]
+        return temp
+      })
+    }
+  }
+
+  function addPiece(tag: ReactElement) {
+    setBoardPieces(pieces => {
+      const temp = [...pieces]
+      temp[15].tag = tag
+      return temp
+    })
+  }
+
   return (
     <>
       <header className="pt-4 text-center">
@@ -92,6 +114,7 @@ export default function App() {
             <section className="row">
               {defaultPieces.map((piece, i) => (
                 <div
+                  onClick={() => addPiece(piece.tag)}
                   key={piece.id}
                   className={
                     i % 2 == 1 ? 'col-2 d-flex chess-tile bg-dark' : 'col-2 d-flex chess-tile'
@@ -105,18 +128,4 @@ export default function App() {
       </footer>
     </>
   )
-
-  function handleDragEnd({ active, over }: any) {
-    if (active.id !== over.id) {
-      setBoardPieces(items => {
-        const oldIndex = active.id - 1
-        const newIndex = over.id - 1
-        const temp = [...items]
-        temp[oldIndex].id = over.id
-        temp[newIndex].id = active.id
-        ;[temp[oldIndex], temp[newIndex]] = [temp[newIndex], temp[oldIndex]]
-        return temp
-      })
-    }
-  }
 }
