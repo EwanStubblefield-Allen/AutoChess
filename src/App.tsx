@@ -8,72 +8,115 @@ import {
   mdiChessQueen,
   mdiChessRook
 } from '@mdi/js'
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  rectSwappingStrategy,
+  sortableKeyboardCoordinates
+} from '@dnd-kit/sortable'
 import { useState } from 'react'
+import SortableItem from './components/sortableItem'
 import { ChessPiece } from './interfaces/chessPiece'
 
-function App() {
-  const [defaultPieces, setDefaultPieces] = useState<ChessPiece[]>([
-    { name: 'Pawn', tag: <Icon path={mdiChessPawn}></Icon> },
-    { name: 'Rook', tag: <Icon path={mdiChessRook}></Icon> },
-    { name: 'Knight', tag: <Icon path={mdiChessKnight}></Icon> },
-    { name: 'Bishop', tag: <Icon path={mdiChessBishop}></Icon> },
-    { name: 'Queen', tag: <Icon path={mdiChessQueen}></Icon> },
-    { name: 'King', tag: <Icon path={mdiChessKing}></Icon> }
+export default function App() {
+  const defaultPieces = [
+    { id: 'Pawn', tag: <Icon path={mdiChessPawn}></Icon> },
+    { id: 'Rook', tag: <Icon path={mdiChessRook}></Icon> },
+    { id: 'Knight', tag: <Icon path={mdiChessKnight}></Icon> },
+    { id: 'Bishop', tag: <Icon path={mdiChessBishop}></Icon> },
+    { id: 'Queen', tag: <Icon path={mdiChessQueen}></Icon> },
+    { id: 'King', tag: <Icon path={mdiChessKing}></Icon> }
+  ]
+  const [boardPieces, setBoardPieces] = useState<ChessPiece[]>([
+    { id: 1, tag: <></> },
+    { id: 2, tag: <></> },
+    { id: 3, tag: <></> },
+    { id: 4, tag: <></> },
+    { id: 5, tag: <></> },
+    { id: 6, tag: <></> },
+    { id: 7, tag: <></> },
+    { id: 8, tag: <></> },
+    { id: 9, tag: <></> },
+    { id: 10, tag: <></> },
+    { id: 11, tag: <></> },
+    { id: 12, tag: <></> },
+    { id: 13, tag: <></> },
+    { id: 14, tag: <></> },
+    { id: 15, tag: <></> },
+    { id: 16, tag: <></> }
   ])
-  const [boardPieces, setBoardPieces] = useState<ChessPiece[][]>([[]])
-
-  function board() {
-    let template = []
-    for (let i = 1; i <= 4; i++) {
-      const oddBackground = i % 2 == 1 ? 'bg-dark' : ''
-      const evenBackground = i % 2 == 0 ? 'bg-dark' : ''
-      template.push(
-        <tr key={`row-${i}`}>
-          <td className={oddBackground}></td>
-          <td className={evenBackground}></td>
-          <td className={oddBackground}></td>
-          <td className={evenBackground}></td>
-        </tr>
-      )
-    }
-    return template
-  }
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  )
 
   return (
     <>
       <header className="pt-4 text-center">
         <button className="btn btn-primary">Start</button>
       </header>
+
       <main className="container-fluid">
-        <section className="row">
-          <div className="col-md-3"></div>
-          <div className="col-md-6 d-flex justify-content-center">
-            <table className="chess-board">
-              <tbody>{board()}</tbody>
-            </table>
+        <section className="row px-3">
+          <div className="col-sm-2 col-md-3 col-lg-4"></div>
+          <div className="col-sm-8 col-md-6 col-lg-4">
+            <section className="row">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}>
+                <SortableContext items={boardPieces} strategy={rectSwappingStrategy}>
+                  {boardPieces.map(piece => (
+                    <SortableItem key={piece.id} id={piece.id} tag={piece.tag} />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            </section>
           </div>
-          <div className="col-md-3"></div>
+          <div className="col-sm-2 col-md-3 col-lg-4"></div>
         </section>
       </main>
+
       <footer className="container-fluid pb-4 fixed-bottom">
-        <section className="row justify-content-center">
-          <div className="col-8 d-flex justify-content-center">
-            <table className="chess-board">
-              <tbody>
-                <tr>
-                  {defaultPieces.map((piece, i) => (
-                    <td key={piece.name} className={i % 2 == 1 ? 'bg-dark' : ''}>
-                      {piece.tag}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+        <section className="row justify-content-center px-3">
+          <div className="col-md-8 d-flex justify-content-center">
+            <section className="row">
+              {defaultPieces.map((piece, i) => (
+                <div
+                  key={piece.id}
+                  className={
+                    i % 2 == 1 ? 'col-2 d-flex chess-tile bg-dark' : 'col-2 d-flex chess-tile'
+                  }>
+                  {piece.tag}
+                </div>
+              ))}
+            </section>
           </div>
         </section>
       </footer>
     </>
   )
-}
 
-export default App
+  function handleDragEnd({ active, over }: any) {
+    if (active.id !== over.id) {
+      setBoardPieces(items => {
+        const oldIndex = active.id - 1
+        const newIndex = over.id - 1
+        const temp = [...items]
+        temp[oldIndex].id = over.id
+        temp[newIndex].id = active.id
+        ;[temp[oldIndex], temp[newIndex]] = [temp[newIndex], temp[oldIndex]]
+        return temp
+      })
+    }
+  }
+}

@@ -17,7 +17,7 @@ function log(type: 'log' | 'error' | 'warn' | 'trace', content: Array<string | E
 }
 
 export const logger = {
-  log(...args: Array<string | Error>) {
+  log(...args: Array<any>) {
     log('log', args)
   },
   error(...args: Array<string | Error>) {

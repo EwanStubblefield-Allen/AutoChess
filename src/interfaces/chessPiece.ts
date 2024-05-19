@@ -1,6 +1,6 @@
 import { ReactElement } from 'react'
 
 export interface ChessPiece {
-  name: string
+  id: number
   tag: ReactElement
 }
