@@ -1,15 +1,7 @@
-import { ReactElement, useState } from 'react'
-import { ChessPiece } from './interfaces/chessPiece'
-import Icon from '@mdi/react'
-import SortableItem from './components/sortableItem'
-import {
-  mdiChessBishop,
-  mdiChessKing,
-  mdiChessKnight,
-  mdiChessPawn,
-  mdiChessQueen,
-  mdiChessRook
-} from '@mdi/js'
+import { useState } from 'react'
+import { IChessPiece } from './interfaces/IChessPiece'
+import { AppState } from './AppState'
+import { moveListService } from './services/MoveListService'
 import {
   DndContext,
   KeyboardSensor,
@@ -24,34 +16,28 @@ import {
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable'
 import './assets/App.css'
+import SortableItem from './components/sortableItem'
+import Pop from './utils/Pop'
 import { logger } from './utils/Logger'
 
 export default function App() {
-  const defaultPieces = [
-    { id: 'Pawn', tag: <Icon path={mdiChessPawn}></Icon> },
-    { id: 'Rook', tag: <Icon path={mdiChessRook}></Icon> },
-    { id: 'Knight', tag: <Icon path={mdiChessKnight}></Icon> },
-    { id: 'Bishop', tag: <Icon path={mdiChessBishop}></Icon> },
-    { id: 'Queen', tag: <Icon path={mdiChessQueen}></Icon> },
-    { id: 'King', tag: <Icon path={mdiChessKing}></Icon> }
-  ]
-  const [boardPieces, setBoardPieces] = useState<ChessPiece[]>([
-    { id: 1, tag: null },
-    { id: 2, tag: null },
-    { id: 3, tag: null },
-    { id: 4, tag: null },
-    { id: 5, tag: null },
-    { id: 6, tag: null },
-    { id: 7, tag: null },
-    { id: 8, tag: null },
-    { id: 9, tag: null },
-    { id: 10, tag: null },
-    { id: 11, tag: null },
-    { id: 12, tag: null },
-    { id: 13, tag: null },
-    { id: 14, tag: null },
-    { id: 15, tag: null },
-    { id: 16, tag: null }
+  const [boardPieces, setBoardPieces] = useState<IChessPiece[]>([
+    { id: 1, name: '', tag: <></> },
+    { id: 2, name: '', tag: <></> },
+    { id: 3, name: '', tag: <></> },
+    { id: 4, name: '', tag: <></> },
+    { id: 5, name: '', tag: <></> },
+    { id: 6, name: '', tag: <></> },
+    { id: 7, name: '', tag: <></> },
+    { id: 8, name: '', tag: <></> },
+    { id: 9, name: '', tag: <></> },
+    { id: 10, name: '', tag: <></> },
+    { id: 11, name: '', tag: <></> },
+    { id: 12, name: '', tag: <></> },
+    { id: 13, name: '', tag: <></> },
+    { id: 14, name: '', tag: <></> },
+    { id: 15, name: '', tag: <></> },
+    { id: 16, name: '', tag: <></> }
   ])
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,10 +52,10 @@ export default function App() {
 
   function handleDragEnd({ active, over }: any) {
     if (active.id !== over.id) {
-      setBoardPieces(items => {
+      setBoardPieces(pieces => {
         const oldIndex = active.id - 1
         const newIndex = over.id - 1
-        const temp = [...items]
+        const temp = [...pieces]
         temp[oldIndex].id = over.id
         temp[newIndex].id = active.id
         ;[temp[oldIndex], temp[newIndex]] = [temp[newIndex], temp[oldIndex]]
@@ -78,19 +64,29 @@ export default function App() {
     }
   }
 
-  function addPiece(tag: ReactElement) {
+  function solve() {
+    const foundPiece = boardPieces.find(p => p.name)
+    if (!foundPiece) {
+      return Pop.error('Add a piece to the board!')
+    }
+    const moveList = moveListService.getPiece(foundPiece)
+    logger.log(moveList)
+  }
+
+  function addPiece(piece: IChessPiece) {
     setBoardPieces(pieces => {
       const temp = [...pieces]
-      temp[15].tag = tag
+      temp[15].name = piece.name
+      temp[15].tag = piece.tag
       return temp
     })
   }
 
   function removePiece(index: number) {
-    logger.log('remove')
     setBoardPieces(pieces => {
       const temp = [...pieces]
-      temp[index].tag = null
+      temp[index].name = ''
+      temp[index].tag = <></>
       return temp
     })
   }
@@ -98,7 +94,9 @@ export default function App() {
   return (
     <>
       <header className="pt-4 text-center">
-        <button className="btn btn-primary">Start</button>
+        <button onClick={() => solve()} className="btn btn-primary">
+          Start
+        </button>
       </header>
 
       <main className="container-fluid">
@@ -126,9 +124,9 @@ export default function App() {
         <section className="row justify-content-center px-3">
           <div className="col-md-8 d-flex justify-content-center">
             <section className="row">
-              {defaultPieces.map((piece, i) => (
+              {AppState.defaultPieces.map((piece: IChessPiece, i: number) => (
                 <div
-                  onClick={() => addPiece(piece.tag)}
+                  onClick={() => addPiece(piece)}
                   key={piece.id}
                   className={
                     i % 2 == 1

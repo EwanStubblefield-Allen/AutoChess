@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChessPiece } from '../interfaces/chessPiece'
+import { IChessPiece } from '../interfaces/IChessPiece'
 import { mdiClose } from '@mdi/js'
 import Icon from '@mdi/react'
 
@@ -8,7 +8,7 @@ export default function SortableItem({
   piece,
   removePiece
 }: {
-  piece: ChessPiece
+  piece: IChessPiece
   removePiece: any
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -33,7 +33,7 @@ export default function SortableItem({
   }
 
   function removePieceIcon() {
-    if (piece.tag) {
+    if (Object.keys(piece.tag.props).length) {
       return (
         <button
           type="button"
@@ -52,6 +52,7 @@ export default function SortableItem({
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={tileBackground()}>
       {removePieceIcon()}
       {piece.tag}
+      {piece.id}
     </div>
   )
 }
