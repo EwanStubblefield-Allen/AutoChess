@@ -1,5 +1,6 @@
 import { action, makeAutoObservable } from 'mobx'
 import { isValidProp } from './utils/isValidProp.ts'
+import { IAppState } from './interfaces/IAppState.ts'
 import { IChessPiece } from './interfaces/IChessPiece.ts'
 import {
   mdiChessBishop,
@@ -25,7 +26,7 @@ export class ObservableAppState {
   ]
 }
 
-export const AppState = new Proxy(new ObservableAppState(), {
+export const AppState = new Proxy<IAppState>(new ObservableAppState(), {
   get(target: any, prop) {
     isValidProp(target, prop)
     return target[prop]

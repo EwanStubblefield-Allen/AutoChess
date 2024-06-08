@@ -8,7 +8,7 @@ const boardMatrix = [
 ]
 
 class MoveListService {
-  getPiece(piece: IChessPiece) {
+  getPieceMoveList(piece: IChessPiece) {
     let moveList: number[] = []
     let position = piece.id
 

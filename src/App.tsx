@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { IChessPiece } from './interfaces/IChessPiece'
 import { AppState } from './AppState'
-import { moveListService } from './services/MoveListService'
+import { IChessPiece } from './interfaces/IChessPiece'
+import { solveService } from './services/SolveService'
 import {
   DndContext,
   KeyboardSensor,
@@ -18,7 +18,6 @@ import {
 import './assets/App.css'
 import SortableItem from './components/sortableItem'
 import Pop from './utils/Pop'
-import { logger } from './utils/Logger'
 
 export default function App() {
   const [boardPieces, setBoardPieces] = useState<IChessPiece[]>([
@@ -64,31 +63,31 @@ export default function App() {
     }
   }
 
-  function solve() {
-    const foundPiece = boardPieces.find(p => p.name)
-    if (!foundPiece) {
-      return Pop.error('Add a piece to the board!')
-    }
-    const moveList = moveListService.getPiece(foundPiece)
-    logger.log(moveList)
+  function replacePiece(newPiece: IChessPiece, replaceIndex: number) {
+    addPiece(newPiece, replaceIndex)
+    removePiece(newPiece.id - 1)
   }
 
-  function addPiece(piece: IChessPiece) {
-    setBoardPieces(pieces => {
-      const temp = [...pieces]
-      temp[15].name = piece.name
-      temp[15].tag = piece.tag
-      return temp
-    })
+  function solve() {
+    try {
+      solveService.solve(boardPieces, replacePiece)
+    } catch (error: any) {
+      Pop.error(error.message)
+    }
+  }
+
+  function addPiece(piece: IChessPiece, index: number) {
+    const temp = [...boardPieces]
+    temp[index].name = piece.name
+    temp[index].tag = piece.tag
+    setBoardPieces(() => temp)
   }
 
   function removePiece(index: number) {
-    setBoardPieces(pieces => {
-      const temp = [...pieces]
-      temp[index].name = ''
-      temp[index].tag = <></>
-      return temp
-    })
+    const temp = [...boardPieces]
+    temp[index].name = ''
+    temp[index].tag = <></>
+    setBoardPieces(() => temp)
   }
 
   return (
@@ -126,7 +125,7 @@ export default function App() {
             <section className="row">
               {AppState.defaultPieces.map((piece: IChessPiece, i: number) => (
                 <div
-                  onClick={() => addPiece(piece)}
+                  onClick={() => addPiece(piece, 15)}
                   key={piece.id}
                   className={
                     i % 2 == 1
