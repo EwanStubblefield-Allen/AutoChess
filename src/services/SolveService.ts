@@ -1,32 +1,55 @@
+import { AppState } from '../AppState'
 import { IChessPiece } from '../interfaces/IChessPiece'
 import { moveListService } from './MoveListService'
-import Pop from '../utils/Pop'
 
 class SolveService {
-  solve(boardPieces: IChessPiece[], replacePiece: Function) {
-    const foundPieces = boardPieces.filter(p => p.name)
+  solve(boardPieces: IChessPiece[], addPiece: Function, replacePiece: Function): IChessPiece[] {
+    if (AppState.count == 1) {
+      return boardPieces
+    }
 
-    if (!foundPieces) {
-      return Pop.error('Add a piece to the board!')
-    }
-    let index = 0
-    while (foundPieces.length != 1) {
-      let newPiece = foundPieces[index]
-      const moveList = moveListService.getPieceMoveList(newPiece)
-      const foundMove = moveList.find(m => boardPieces[m - 1].name)
-      if (!foundMove) {
-        index++
-        if (index > foundPieces.length - 1) {
-          throw new Error('The Board Is Unsolvable')
+    for (let currentIndex = 0; currentIndex < boardPieces.length; currentIndex++) {
+      let newPiece = boardPieces[currentIndex]
+
+      if (newPiece.name) {
+        let moveList = moveListService.getPieceMoveList(newPiece)
+
+        for (let i = 0; i < moveList.length; i++) {
+          let replaceIndex = moveList[i]
+
+          if (boardPieces[replaceIndex].name) {
+            AppState.logs = [
+              {
+                currentIndex,
+                replaceIndex,
+                capture: boardPieces[replaceIndex]
+              },
+              ...AppState.logs
+            ]
+            replacePiece(newPiece, replaceIndex)
+            AppState.count--
+            boardPieces = this.solve(boardPieces, addPiece, replacePiece)
+            if (AppState.count == 1) {
+              return boardPieces
+            }
+          }
         }
-        continue
       }
-      const replaceIndex = boardPieces[foundMove - 1].id - 1
-      replacePiece(newPiece, replaceIndex)
-      foundPieces.splice(index, 1)
-      index = 0
     }
-    Pop.success('The Board Was Solved')
+
+    if (AppState.count > 1) {
+      let temp = AppState.logs
+      let lastMove = temp.shift()
+      AppState.logs = temp
+
+      if (!lastMove) {
+        throw new Error('This Board Is Unsolvable')
+      }
+      replacePiece(boardPieces[lastMove.replaceIndex], lastMove.currentIndex)
+      addPiece(lastMove.capture, lastMove.replaceIndex)
+      AppState.count++
+    }
+    return boardPieces
   }
 }
 

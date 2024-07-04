@@ -70,7 +70,13 @@ export default function App() {
 
   function solve() {
     try {
-      solveService.solve(boardPieces, replacePiece)
+      AppState.logs = []
+      AppState.count = boardPieces.filter(p => p.name).length
+      if (AppState.count == 0) {
+        throw new Error('Add a piece to the board!')
+      }
+      solveService.solve(boardPieces, addPiece, replacePiece)
+      Pop.success('The Board Was Solved')
     } catch (error: any) {
       Pop.error(error.message)
     }

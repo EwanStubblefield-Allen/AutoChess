@@ -1,16 +1,16 @@
 import { IChessPiece } from '../interfaces/IChessPiece'
 
-const boardMatrix = [
-  [1, 2, 3, 4],
-  [5, 6, 7, 8],
-  [9, 10, 11, 12],
-  [13, 14, 15, 16]
+const boardMatrix: number[][] = [
+  [0, 1, 2, 3],
+  [4, 5, 6, 7],
+  [8, 9, 10, 11],
+  [12, 13, 14, 15]
 ]
 
 class MoveListService {
-  getPieceMoveList(piece: IChessPiece) {
+  getPieceMoveList(piece: IChessPiece): number[] {
     let moveList: number[] = []
-    let position = piece.id
+    let position: number = piece.id - 1
 
     switch (piece.name) {
       case 'Pawn':
@@ -35,98 +35,98 @@ class MoveListService {
     return moveList
   }
 
-  pawnMoves(position: number) {
+  pawnMoves(position: number): number[] {
     const moveList: number[] = []
     // Top
-    if (Math.ceil(position / 4) != 1) {
+    if (Math.floor(position / 4) != 0) {
       // Left
-      if (position % 4 != 1) {
+      if (position % 4 != 0) {
         moveList.push(position - 5)
       }
       // Right
-      if (position % 4 != 0) {
+      if (position % 4 != 3) {
         moveList.push(position - 3)
       }
     }
     // Bottom
-    if (Math.ceil(position / 4) != 4) {
+    if (Math.floor(position / 4) != 3) {
       // Left
-      if (position % 4 != 1) {
+      if (position % 4 != 0) {
         moveList.push(position + 3)
       }
       // Right
-      if (position % 4 != 0) {
+      if (position % 4 != 3) {
         moveList.push(position + 5)
       }
     }
     return moveList
   }
 
-  rookMoves(position: number) {
+  rookMoves(position: number): number[] {
     let moveList: number[] = []
-    const vIndex = Math.ceil(position / 4) - 1
-    const hIndex = (position - 1) % 4
+    const vIndex: number = Math.floor(position / 4)
+    const hIndex: number = position % 4
 
     for (let i = 0; i < 4; i++) {
-      const rowMoves = this.straightMoves(i, vIndex, hIndex, position)
+      const rowMoves: number[] = this.straightMoves(i, vIndex, hIndex, position)
       moveList = moveList.concat(rowMoves)
     }
     return moveList
   }
 
-  knightMoves(position: number) {
+  knightMoves(position: number): number[] {
     const moveList: number[] = []
-    const vIndex = Math.ceil(position / 4) - 1
-    const hIndex = (position - 1) % 4
+    const vIndex: number = Math.floor(position / 4)
+    const hIndex: number = position % 4
 
     for (let i = 0; i < 2; i++) {
       // Top
-      const tMoves = boardMatrix[vIndex - i - 1]
-      if (tMoves) {
+      const tMoves: number[] = boardMatrix[vIndex - i - 1]
+      if (tMoves != undefined) {
         // Left
-        const tlMove = tMoves[hIndex - (2 - i)]
-        tlMove && moveList.push(tlMove)
+        const tlMove: number = tMoves[hIndex - (2 - i)]
+        tlMove != undefined && moveList.push(tlMove)
         // Right
-        const trMove = tMoves[hIndex + (2 - i)]
-        trMove && moveList.push(trMove)
+        const trMove: number = tMoves[hIndex + (2 - i)]
+        trMove != undefined && moveList.push(trMove)
       }
 
       // Bottom
-      const bMoves = boardMatrix[vIndex + i + 1]
-      if (bMoves) {
+      const bMoves: number[] = boardMatrix[vIndex + i + 1]
+      if (bMoves != undefined) {
         // Left
-        const blMove = bMoves[hIndex - (2 - i)]
-        blMove && moveList.push(blMove)
+        const blMove: number = bMoves[hIndex - (2 - i)]
+        blMove != undefined && moveList.push(blMove)
         // Right
-        const brMove = bMoves[hIndex + (2 - i)]
-        brMove && moveList.push(brMove)
+        const brMove: number = bMoves[hIndex + (2 - i)]
+        brMove != undefined && moveList.push(brMove)
       }
     }
     return moveList
   }
 
-  bishopMoves(position: number) {
+  bishopMoves(position: number): number[] {
     let moveList: number[] = []
-    const vIndex = Math.ceil(position / 4) - 1
-    const hIndex = (position - 1) % 4
+    const vIndex: number = Math.floor(position / 4)
+    const hIndex: number = position % 4
 
     for (let i = 0; i < 4; i++) {
-      const rowMoves = this.diagonalMoves(i, vIndex, hIndex)
-      if (rowMoves) {
+      const rowMoves: number[] = this.diagonalMoves(i, vIndex, hIndex)
+      if (rowMoves != undefined) {
         moveList = moveList.concat(rowMoves)
       }
     }
     return moveList
   }
 
-  queenMoves(position: number) {
+  queenMoves(position: number): number[] {
     let moveList: number[] = []
-    const vIndex = Math.ceil(position / 4) - 1
-    const hIndex = (position - 1) % 4
+    const vIndex: number = Math.floor(position / 4)
+    const hIndex: number = position % 4
 
     for (let i = 0; i < 4; i++) {
       let rowMoves = this.diagonalMoves(i, vIndex, hIndex)
-      if (rowMoves) {
+      if (rowMoves != undefined) {
         moveList = moveList.concat(rowMoves)
       }
       rowMoves = this.straightMoves(i, vIndex, hIndex, position)
@@ -135,19 +135,19 @@ class MoveListService {
     return moveList
   }
 
-  kingMoves(position: number) {
+  kingMoves(position: number): number[] {
     const moveList: number[] = []
-    const vIndex = Math.ceil(position / 4) - 1
-    const hIndex = (position - 1) % 4
+    const vIndex: number = Math.floor(position / 4)
+    const hIndex: number = position % 4
 
     for (let i = 0; i < 3; i++) {
-      const moves = boardMatrix[vIndex - 1 + i]
-      if (!moves) {
+      const moves: number[] = boardMatrix[vIndex - 1 + i]
+      if (moves == undefined) {
         continue
       }
       for (let j = 0; j < 3; j++) {
-        const move = moves[hIndex - 1 + j]
-        if (move && move != position) {
+        const move: number = moves[hIndex - 1 + j]
+        if (move != undefined && move != position) {
           moveList.push(move)
         }
       }
@@ -155,33 +155,33 @@ class MoveListService {
     return moveList
   }
 
-  straightMoves(row: number, vIndex: number, hIndex: number, position: number) {
-    const moveList = []
+  straightMoves(row: number, vIndex: number, hIndex: number, position: number): number[] {
+    const moveList: number[] = []
     // Horizontal
-    const hMove = boardMatrix[vIndex][row]
+    const hMove: number = boardMatrix[vIndex][row]
     if (hMove != position) {
       moveList.push(hMove)
     }
     // Vertical
-    const vMove = boardMatrix[row][hIndex]
+    const vMove: number = boardMatrix[row][hIndex]
     if (vMove != position) {
       moveList.push(vMove)
     }
     return moveList
   }
 
-  diagonalMoves(row: number, vIndex: number, hIndex: number) {
-    const moveList = []
+  diagonalMoves(row: number, vIndex: number, hIndex: number): number[] {
+    const moveList: number[] = []
     if (row == vIndex) {
-      return
+      return []
     }
-    const moves = boardMatrix[row]
+    const moves: number[] = boardMatrix[row]
     // Left
-    const lMove = moves[hIndex - Math.abs(vIndex - row)]
-    lMove && moveList.push(lMove)
+    const lMove: number = moves[hIndex - Math.abs(vIndex - row)]
+    lMove != undefined && moveList.push(lMove)
     // Right
-    const rMove = moves[hIndex + Math.abs(vIndex - row)]
-    rMove && moveList.push(rMove)
+    const rMove: number = moves[hIndex + Math.abs(vIndex - row)]
+    rMove != undefined && moveList.push(rMove)
     return moveList
   }
 }

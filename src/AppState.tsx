@@ -2,6 +2,7 @@ import { action, makeAutoObservable } from 'mobx'
 import { isValidProp } from './utils/isValidProp.ts'
 import { IAppState } from './interfaces/IAppState.ts'
 import { IChessPiece } from './interfaces/IChessPiece.ts'
+import { ILog } from './interfaces/ILog.ts'
 import {
   mdiChessBishop,
   mdiChessKing,
@@ -24,6 +25,8 @@ export class ObservableAppState {
     { id: 5, name: 'Queen', tag: <Icon path={mdiChessQueen}></Icon> },
     { id: 6, name: 'King', tag: <Icon path={mdiChessKing}></Icon> }
   ]
+  logs: ILog[] = []
+  count: number = 0
 }
 
 export const AppState = new Proxy<IAppState>(new ObservableAppState(), {

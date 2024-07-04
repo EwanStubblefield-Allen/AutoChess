@@ -52,7 +52,7 @@ export default function SortableItem({
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={tileBackground()}>
       {removePieceIcon()}
       {piece.tag}
-      {piece.id}
+      {piece.id - 1}
     </div>
   )
 }
