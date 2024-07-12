@@ -17,6 +17,7 @@ export class ObservableAppState {
   constructor() {
     makeAutoObservable(this)
   }
+
   defaultPieces: IChessPiece[] = [
     { id: 1, name: 'Pawn', tag: <Icon path={mdiChessPawn}></Icon> },
     { id: 2, name: 'Rook', tag: <Icon path={mdiChessRook}></Icon> },
@@ -24,6 +25,24 @@ export class ObservableAppState {
     { id: 4, name: 'Bishop', tag: <Icon path={mdiChessBishop}></Icon> },
     { id: 5, name: 'Queen', tag: <Icon path={mdiChessQueen}></Icon> },
     { id: 6, name: 'King', tag: <Icon path={mdiChessKing}></Icon> }
+  ]
+  boardPieces: IChessPiece[] = [
+    { id: 1, name: '', tag: <></> },
+    { id: 2, name: '', tag: <></> },
+    { id: 3, name: '', tag: <></> },
+    { id: 4, name: '', tag: <></> },
+    { id: 5, name: '', tag: <></> },
+    { id: 6, name: '', tag: <></> },
+    { id: 7, name: '', tag: <></> },
+    { id: 8, name: '', tag: <></> },
+    { id: 9, name: '', tag: <></> },
+    { id: 10, name: '', tag: <></> },
+    { id: 11, name: '', tag: <></> },
+    { id: 12, name: '', tag: <></> },
+    { id: 13, name: '', tag: <></> },
+    { id: 14, name: '', tag: <></> },
+    { id: 15, name: '', tag: <></> },
+    { id: 16, name: '', tag: <></> }
   ]
   logs: ILog[] = []
   count: number = 0

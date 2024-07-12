@@ -4,7 +4,7 @@ import { IChessPiece } from '../interfaces/IChessPiece'
 import { mdiClose } from '@mdi/js'
 import Icon from '@mdi/react'
 
-export default function SortableItem({
+export default function SortablePiece({
   piece,
   removePiece
 }: {

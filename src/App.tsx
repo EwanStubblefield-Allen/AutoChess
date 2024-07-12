@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { observer } from 'mobx-react'
 import { AppState } from './AppState'
 import { IChessPiece } from './interfaces/IChessPiece'
-import { solveService } from './services/SolveService'
+import { chessService } from './services/ChessService'
 import {
   DndContext,
   KeyboardSensor,
@@ -16,28 +16,12 @@ import {
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable'
 import './assets/App.css'
-import SortableItem from './components/sortableItem'
+import SortablePiece from './components/sortablePiece'
 import Pop from './utils/Pop'
+import { movesService } from './services/MovesService'
+import { logger } from './utils/Logger'
 
-export default function App() {
-  const [boardPieces, setBoardPieces] = useState<IChessPiece[]>([
-    { id: 1, name: '', tag: <></> },
-    { id: 2, name: '', tag: <></> },
-    { id: 3, name: '', tag: <></> },
-    { id: 4, name: '', tag: <></> },
-    { id: 5, name: '', tag: <></> },
-    { id: 6, name: '', tag: <></> },
-    { id: 7, name: '', tag: <></> },
-    { id: 8, name: '', tag: <></> },
-    { id: 9, name: '', tag: <></> },
-    { id: 10, name: '', tag: <></> },
-    { id: 11, name: '', tag: <></> },
-    { id: 12, name: '', tag: <></> },
-    { id: 13, name: '', tag: <></> },
-    { id: 14, name: '', tag: <></> },
-    { id: 15, name: '', tag: <></> },
-    { id: 16, name: '', tag: <></> }
-  ])
+const App = observer(() => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -51,49 +35,23 @@ export default function App() {
 
   function handleDragEnd({ active, over }: any) {
     if (active.id !== over.id) {
-      setBoardPieces(pieces => {
-        const oldIndex = active.id - 1
-        const newIndex = over.id - 1
-        const temp = [...pieces]
-        temp[oldIndex].id = over.id
-        temp[newIndex].id = active.id
-        ;[temp[oldIndex], temp[newIndex]] = [temp[newIndex], temp[oldIndex]]
-        return temp
-      })
+      movesService.replacePiece(AppState.boardPieces[active.id - 1], over.id - 1)
     }
-  }
-
-  function replacePiece(newPiece: IChessPiece, replaceIndex: number) {
-    addPiece(newPiece, replaceIndex)
-    removePiece(newPiece.id - 1)
   }
 
   function solve() {
     try {
       AppState.logs = []
-      AppState.count = boardPieces.filter(p => p.name).length
+      AppState.count = AppState.boardPieces.filter(p => p.name).length
       if (AppState.count == 0) {
         throw new Error('Add a piece to the board!')
       }
-      solveService.solve(boardPieces, addPiece, replacePiece)
+      chessService.solveBoard()
+      logger.log(AppState.logs)
       Pop.success('The Board Was Solved')
     } catch (error: any) {
       Pop.error(error.message)
     }
-  }
-
-  function addPiece(piece: IChessPiece, index: number) {
-    const temp = [...boardPieces]
-    temp[index].name = piece.name
-    temp[index].tag = piece.tag
-    setBoardPieces(() => temp)
-  }
-
-  function removePiece(index: number) {
-    const temp = [...boardPieces]
-    temp[index].name = ''
-    temp[index].tag = <></>
-    setBoardPieces(() => temp)
   }
 
   return (
@@ -113,9 +71,13 @@ export default function App() {
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}>
-                <SortableContext items={boardPieces} strategy={rectSwappingStrategy}>
-                  {boardPieces.map(piece => (
-                    <SortableItem key={piece.id} piece={piece} removePiece={removePiece} />
+                <SortableContext items={AppState.boardPieces} strategy={rectSwappingStrategy}>
+                  {AppState.boardPieces.map(piece => (
+                    <SortablePiece
+                      key={piece.id}
+                      piece={piece}
+                      removePiece={movesService.removePiece}
+                    />
                   ))}
                 </SortableContext>
               </DndContext>
@@ -131,7 +93,7 @@ export default function App() {
             <section className="row">
               {AppState.defaultPieces.map((piece: IChessPiece, i: number) => (
                 <div
-                  onClick={() => addPiece(piece, 15)}
+                  onClick={() => movesService.addPiece(piece, 15)}
                   key={piece.id}
                   className={
                     i % 2 == 1
@@ -147,4 +109,6 @@ export default function App() {
       </footer>
     </>
   )
-}
+})
+
+export default App
