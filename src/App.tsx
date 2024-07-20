@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react'
 import { AppState } from './AppState'
-import { IChessPiece } from './interfaces/IChessPiece'
 import { chessService } from './services/ChessService'
 import {
   DndContext,
@@ -41,11 +40,10 @@ const App = observer(() => {
 
   function solve() {
     try {
-      AppState.logs = []
-      AppState.count = AppState.boardPieces.filter(p => p.name).length
-      if (AppState.count == 0) {
+      if (AppState.pieces.length == 0) {
         throw new Error('Add a piece to the board!')
       }
+      AppState.logs = []
       chessService.solveBoard()
       logger.log(AppState.logs)
       Pop.success('The Board Was Solved')
@@ -73,11 +71,7 @@ const App = observer(() => {
                 onDragEnd={handleDragEnd}>
                 <SortableContext items={AppState.boardPieces} strategy={rectSwappingStrategy}>
                   {AppState.boardPieces.map(piece => (
-                    <SortablePiece
-                      key={piece.id}
-                      piece={piece}
-                      removePiece={movesService.removePiece}
-                    />
+                    <SortablePiece key={piece.id} piece={piece} />
                   ))}
                 </SortableContext>
               </DndContext>
@@ -91,7 +85,7 @@ const App = observer(() => {
         <section className="row justify-content-center px-3">
           <div className="col-md-8 d-flex justify-content-center">
             <section className="row">
-              {AppState.defaultPieces.map((piece: IChessPiece, i: number) => (
+              {AppState.defaultPieces.map((piece, i) => (
                 <div
                   onClick={() => movesService.addPiece(piece, 15)}
                   key={piece.id}

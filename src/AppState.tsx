@@ -1,8 +1,6 @@
 import { action, makeAutoObservable } from 'mobx'
 import { isValidProp } from './utils/isValidProp.ts'
 import { IAppState } from './interfaces/IAppState.ts'
-import { IChessPiece } from './interfaces/IChessPiece.ts'
-import { ILog } from './interfaces/ILog.ts'
 import {
   mdiChessBishop,
   mdiChessKing,
@@ -13,12 +11,12 @@ import {
 } from '@mdi/js'
 import Icon from '@mdi/react'
 
-export class ObservableAppState {
+export class ObservableAppState implements IAppState {
   constructor() {
     makeAutoObservable(this)
   }
 
-  defaultPieces: IChessPiece[] = [
+  defaultPieces = [
     { id: 1, name: 'Pawn', tag: <Icon path={mdiChessPawn}></Icon> },
     { id: 2, name: 'Rook', tag: <Icon path={mdiChessRook}></Icon> },
     { id: 3, name: 'Knight', tag: <Icon path={mdiChessKnight}></Icon> },
@@ -26,7 +24,7 @@ export class ObservableAppState {
     { id: 5, name: 'Queen', tag: <Icon path={mdiChessQueen}></Icon> },
     { id: 6, name: 'King', tag: <Icon path={mdiChessKing}></Icon> }
   ]
-  boardPieces: IChessPiece[] = [
+  boardPieces = [
     { id: 1, name: '', tag: <></> },
     { id: 2, name: '', tag: <></> },
     { id: 3, name: '', tag: <></> },
@@ -44,8 +42,9 @@ export class ObservableAppState {
     { id: 15, name: '', tag: <></> },
     { id: 16, name: '', tag: <></> }
   ]
-  logs: ILog[] = []
-  count: number = 0
+  pieces = []
+  logs = []
+  count = 0
 }
 
 export const AppState = new Proxy<IAppState>(new ObservableAppState(), {

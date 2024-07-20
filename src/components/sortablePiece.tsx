@@ -1,16 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { IChessPiece } from '../interfaces/IChessPiece'
+import { movesService } from '../services/MovesService'
 import { mdiClose } from '@mdi/js'
 import Icon from '@mdi/react'
 
-export default function SortablePiece({
-  piece,
-  removePiece
-}: {
-  piece: IChessPiece
-  removePiece: any
-}) {
+export default function SortablePiece({ piece }: { piece: IChessPiece }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: piece.id
   })
@@ -38,7 +33,7 @@ export default function SortablePiece({
         <button
           type="button"
           onClick={() => {
-            removePiece(piece.id - 1)
+            movesService.removePiece(piece.id - 1)
           }}
           className="d-flex position-absolute end-0 selectable rounded"
           style={{ all: 'unset' }}>
@@ -52,7 +47,7 @@ export default function SortablePiece({
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={tileBackground()}>
       {removePieceIcon()}
       {piece.tag}
-      {piece.id - 1}
+      <p className="position-absolute">{piece.id - 1}</p>
     </div>
   )
 }

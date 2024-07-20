@@ -3,43 +3,41 @@ import { IChessPiece } from '../interfaces/IChessPiece'
 import { ILog } from '../interfaces/ILog'
 import { movesService } from './MovesService'
 
+let grid: number
+let col: number
+let row: number
+
 class ChessService {
-  solveBoard(): IChessPiece[] {
+  solveBoard(): void {
     const boardPieces: IChessPiece[] = AppState.boardPieces
-    if (AppState.count == 1) {
-      return boardPieces
+    const pieceCount = AppState.pieces.length
+    if (pieceCount == 1) {
+      return
     }
 
-    for (let currentIndex = 0; currentIndex < boardPieces.length; currentIndex++) {
-      const newPiece: IChessPiece = boardPieces[currentIndex]
+    for (let i = 0; i < pieceCount; i++) {
+      const currentIndex = AppState.pieces[i].id - 1
+      const moves = this.getPieceMoveList(currentIndex)
 
-      if (newPiece.name) {
-        const moveList: number[] = this.getPieceMoveList(newPiece)
+      for (let replaceIndex of moves) {
+        AppState.logs = [
+          {
+            currentIndex,
+            replaceIndex,
+            capture: boardPieces[replaceIndex]
+          },
+          ...AppState.logs
+        ]
+        movesService.replacePiece(boardPieces[currentIndex], replaceIndex)
+        this.solveBoard()
 
-        for (let i = 0; i < moveList.length; i++) {
-          const replaceIndex: number = moveList[i]
-
-          if (boardPieces[replaceIndex].name) {
-            AppState.logs = [
-              {
-                currentIndex,
-                replaceIndex,
-                capture: boardPieces[replaceIndex]
-              },
-              ...AppState.logs
-            ]
-            movesService.replacePiece(newPiece, replaceIndex)
-            AppState.count--
-            this.solveBoard()
-            if (AppState.count == 1) {
-              return boardPieces
-            }
-          }
+        if (pieceCount != AppState.pieces.length) {
+          return
         }
       }
     }
 
-    if (AppState.count > 1) {
+    if (pieceCount > 1) {
       const temp: ILog[] = AppState.logs
       const lastMove: ILog | undefined = temp.shift()
       AppState.logs = temp
@@ -47,82 +45,168 @@ class ChessService {
       if (!lastMove) {
         throw new Error('This Board Is Unsolvable')
       }
-      movesService.replacePiece(boardPieces[lastMove.replaceIndex], lastMove.currentIndex)
-      movesService.addPiece(lastMove.capture, lastMove.replaceIndex)
-      AppState.count++
+      const { currentIndex, replaceIndex, capture }: ILog = lastMove
+      movesService.replacePiece(boardPieces[replaceIndex], currentIndex)
+      movesService.addPiece(capture, replaceIndex)
     }
-    return boardPieces
   }
 
-  getPieceMoveList(piece: IChessPiece): number[] {
-    const position: number = piece.id - 1
-    if (position < 0 || position > 15) {
-      throw new Error('Invalid Index')
-    }
-    const name = piece.name
-    const moveList: number[] = []
-    const col: number = position % 4
-    const row: number = Math.floor(position / 4)
+  getPieceMoveList(position: number): number[] {
+    const board = AppState.boardPieces
+    const boardSize = board.length
+    let moveList: number[] = []
+    grid = Math.sqrt(boardSize)
+    col = position % grid
+    row = Math.floor(position / grid)
 
-    if (name == 'Pawn' || name == 'King') {
-      // Pawn and King
-      for (let i = 0; i < 3; i++) {
-        const mid: number = 4 * i + position - 4
-
-        if (mid < 0 || mid > 15 || (i == 1 && name == 'Pawn')) {
-          continue
-        }
-        // Left
-        if (mid % 4 != 0) {
-          moveList.push(mid - 1)
-        }
-        // Middle
-        if (mid != position && name != 'Pawn') {
-          moveList.push(mid)
-        }
-        // Right
-        if (mid % 4 != 3) {
-          moveList.push(mid + 1)
-        }
-      }
-    } else {
-      // Rook, Knight, Bishop, and Queen
-      for (let i = 0; i < 4; i++) {
-        const current: number = 4 * i + col
-        // Straight Moves
-        if (name == 'Rook' || name == 'Queen') {
-          // Horizontal
-          if (col != i) {
-            moveList.push(4 * row + i)
+    switch (board[position].name) {
+      case 'Pawn':
+        if (row > 0) {
+          // Top Left Position
+          if (board[position - 5]?.name) {
+            moveList.push(position - 5)
           }
-          // Vertical
-          if (row != i) {
-            moveList.push(current)
+          // Top Right Position
+          if (board[position - 3]?.name) {
+            moveList.push(position - 3)
           }
         }
-        // Diagonal Moves
-        if (name == 'Knight' || name == 'Bishop' || name == 'Queen') {
-          let dif: number = Math.abs(row - i)
-          if (row == i) {
+        break
+      case 'Rook':
+        moveList = this.getStraightMoves(moveList, position)
+        break
+      case 'Knight':
+        for (let i = -2; i <= 2; i++) {
+          if (!i) {
             continue
           }
-          // Rework to Knight Moves
-          if (name == 'Knight') {
-            if (dif > 2) {
-              continue
-            }
-            dif = 3 - dif
-          }
-          const l: number = current - dif
-          // Left
-          if (Math.floor(l / 4) == i) {
+          const dif = 3 - Math.abs(i)
+          const curRow = row + i
+          const m = grid * curRow + col
+          // Left Position
+          const l = m - dif
+          if (board[l]?.name && Math.floor(l / grid) == curRow) {
             moveList.push(l)
           }
-          // Right
-          const r: number = current + dif
-          if (Math.floor(r / 4) == i) {
+          // Right Position
+          const r = m + dif
+          if (board[r]?.name && Math.floor(r / grid) == curRow) {
             moveList.push(r)
           }
+        }
+        break
+      case 'Bishop':
+        moveList = this.getDiagonalMoves(moveList)
+        break
+      case 'Queen':
+        moveList = this.getStraightMoves(moveList, position)
+        moveList = this.getDiagonalMoves(moveList)
+        break
+      case 'King':
+        for (let i = -1; i <= 1; i++) {
+          // Current Middle Position
+          const m = grid * (row + i) + col
+
+          if (m < 0 || m > boardSize - 1) {
+            continue
+          }
+          // Left Position
+          if (board[m - 1]?.name && m % grid != 0) {
+            moveList.push(m - 1)
+          }
+          // Middle Position
+          if (board[m]?.name && m != position) {
+            moveList.push(m)
+          }
+          // Left Position
+          if (board[m + 1]?.name && m % grid != grid - 1) {
+            moveList.push(m + 1)
+          }
+        }
+        break
+    }
+    return moveList
+  }
+
+  getStraightMoves(moveList: number[], position: number): number[] {
+    // Horizontal
+    for (let i = 0; i < 2; i++) {
+      for (let j = 1; j < grid; j++) {
+        // Left Position
+        let cur = position - j
+        // Right Position
+        if (i == 1) {
+          cur = position + j
+        }
+        // Current Column is Out of Bounds
+        if (Math.floor(cur / grid) != row) {
+          break
+        }
+
+        if (AppState.boardPieces[cur]?.name) {
+          moveList.push(cur)
+          break
+        }
+      }
+    }
+    // Vertical
+    for (let i = 0; i < 2; i++) {
+      for (let j = 1; j < grid; j++) {
+        // Top Row
+        let curRow = row - j
+        // Bottom Row
+        if (i == 1) {
+          curRow = row + j
+        }
+        // Row is Out of Bounds
+        if (curRow < 0 || curRow > grid - 1) {
+          break
+        }
+        // Current Position
+        const cur = grid * curRow + col
+        // Current Column is Out of Bounds
+        if (Math.floor(cur / grid) != curRow) {
+          break
+        }
+
+        if (AppState.boardPieces[cur]?.name) {
+          moveList.push(cur)
+          break
+        }
+      }
+    }
+    return moveList
+  }
+
+  getDiagonalMoves(moveList: number[]): number[] {
+    for (let i = 0; i < 4; i++) {
+      for (let j = 1; j < grid; j++) {
+        // Top Position
+        let curRow = row - j
+        // Bottom Position
+        if (i > 1) {
+          curRow = row + j
+        }
+        // Row is Out of Bounds
+        if (curRow < 0 || curRow > grid - 1) {
+          break
+        }
+        // Current Column
+        const curCol = grid * curRow + col
+        // Left Diagonal
+        let cur = curCol - j
+        // Right Diagonal
+        if (i % 2 == 1) {
+          cur = curCol + j
+        }
+        // Current Column is Out of Bounds
+        if (Math.floor(cur / grid) != curRow) {
+          break
+        }
+
+        if (AppState.boardPieces[cur]?.name) {
+          moveList.push(cur)
+          break
         }
       }
     }
