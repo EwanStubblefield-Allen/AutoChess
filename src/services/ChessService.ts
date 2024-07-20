@@ -1,7 +1,8 @@
 import { AppState } from '../AppState'
-import { ILog } from '../interfaces/ILog'
+import { IChessPiece } from '../interfaces/IChessPiece'
 import { movesService } from './MovesService'
 
+let board: IChessPiece[]
 let grid: number
 let col: number
 let row: number
@@ -12,7 +13,8 @@ class ChessService {
     if (pieceCount == 1) {
       return
     }
-
+    board = AppState.boardPieces
+    grid = Math.sqrt(board.length)
     for (let i = 0; i < pieceCount; i++) {
       const currentIndex = AppState.pieces[i].id - 1
       const moves = this.getPieceMoveList(currentIndex)
@@ -28,24 +30,21 @@ class ChessService {
     }
 
     if (pieceCount > 1) {
-      const temp: ILog[] = AppState.logs
-      const lastMove: ILog | undefined = temp.pop()
+      const temp = AppState.logs
+      const lastMove = temp.pop()
       AppState.logs = temp
 
       if (!lastMove) {
         throw new Error('This Board Is Unsolvable')
       }
-      const { currentIndex, replaceIndex, capture }: ILog = lastMove
+      const { currentIndex, replaceIndex, capture } = lastMove
       movesService.replacePiece(replaceIndex, currentIndex)
       movesService.addPiece(capture, replaceIndex)
     }
   }
 
   getPieceMoveList(position: number): number[] {
-    const board = AppState.boardPieces
-    const boardSize = board.length
     let moveList: number[] = []
-    grid = Math.sqrt(boardSize)
     col = position % grid
     row = Math.floor(position / grid)
 
@@ -53,17 +52,17 @@ class ChessService {
       case 'Pawn':
         if (row > 0) {
           // Top Left Position
-          if (board[position - 5]?.name) {
+          if (board[position - 5].name) {
             moveList.push(position - 5)
           }
           // Top Right Position
-          if (board[position - 3]?.name) {
+          if (board[position - 3].name) {
             moveList.push(position - 3)
           }
         }
         break
       case 'Rook':
-        moveList = this.getStraightMoves(moveList, position)
+        moveList = this.getStraightMoves(position)
         break
       case 'Knight':
         for (let i = -2; i <= 2; i++) {
@@ -75,12 +74,12 @@ class ChessService {
           const m = grid * curRow + col
           // Left Position
           const l = m - dif
-          if (board[l]?.name && Math.floor(l / grid) == curRow) {
+          if (board[l].name && Math.floor(l / grid) == curRow) {
             moveList.push(l)
           }
           // Right Position
           const r = m + dif
-          if (board[r]?.name && Math.floor(r / grid) == curRow) {
+          if (board[r].name && Math.floor(r / grid) == curRow) {
             moveList.push(r)
           }
         }
@@ -89,7 +88,7 @@ class ChessService {
         moveList = this.getDiagonalMoves(moveList)
         break
       case 'Queen':
-        moveList = this.getStraightMoves(moveList, position)
+        moveList = this.getStraightMoves(position)
         moveList = this.getDiagonalMoves(moveList)
         break
       case 'King':
@@ -97,19 +96,19 @@ class ChessService {
           // Current Middle Position
           const m = grid * (row + i) + col
 
-          if (m < 0 || m > boardSize - 1) {
+          if (m < 0 || m > board.length - 1) {
             continue
           }
           // Left Position
-          if (board[m - 1]?.name && m % grid != 0) {
+          if (board[m - 1].name && m % grid != 0) {
             moveList.push(m - 1)
           }
           // Middle Position
-          if (board[m]?.name && m != position) {
+          if (board[m].name && m != position) {
             moveList.push(m)
           }
           // Left Position
-          if (board[m + 1]?.name && m % grid != grid - 1) {
+          if (board[m + 1].name && m % grid != grid - 1) {
             moveList.push(m + 1)
           }
         }
@@ -118,7 +117,8 @@ class ChessService {
     return moveList
   }
 
-  getStraightMoves(moveList: number[], position: number): number[] {
+  getStraightMoves(position: number): number[] {
+    const moveList: number[] = []
     // Horizontal
     for (let i = 0; i < 2; i++) {
       for (let j = 1; j < grid; j++) {
@@ -133,7 +133,7 @@ class ChessService {
           break
         }
 
-        if (AppState.boardPieces[cur]?.name) {
+        if (board[cur].name) {
           moveList.push(cur)
           break
         }
@@ -159,7 +159,7 @@ class ChessService {
           break
         }
 
-        if (AppState.boardPieces[cur]?.name) {
+        if (board[cur].name) {
           moveList.push(cur)
           break
         }
@@ -194,7 +194,7 @@ class ChessService {
           break
         }
 
-        if (AppState.boardPieces[cur]?.name) {
+        if (board[cur].name) {
           moveList.push(cur)
           break
         }
