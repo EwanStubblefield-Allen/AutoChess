@@ -1,5 +1,4 @@
 import { AppState } from '../AppState'
-import { IChessPiece } from '../interfaces/IChessPiece'
 import { ILog } from '../interfaces/ILog'
 import { movesService } from './MovesService'
 
@@ -9,7 +8,6 @@ let row: number
 
 class ChessService {
   solveBoard(): void {
-    const boardPieces: IChessPiece[] = AppState.boardPieces
     const pieceCount = AppState.pieces.length
     if (pieceCount == 1) {
       return
@@ -20,15 +18,7 @@ class ChessService {
       const moves = this.getPieceMoveList(currentIndex)
 
       for (let replaceIndex of moves) {
-        AppState.logs = [
-          {
-            currentIndex,
-            replaceIndex,
-            capture: boardPieces[replaceIndex]
-          },
-          ...AppState.logs
-        ]
-        movesService.replacePiece(boardPieces[currentIndex], replaceIndex)
+        movesService.replacePiece(currentIndex, replaceIndex)
         this.solveBoard()
 
         if (pieceCount != AppState.pieces.length) {
@@ -39,14 +29,14 @@ class ChessService {
 
     if (pieceCount > 1) {
       const temp: ILog[] = AppState.logs
-      const lastMove: ILog | undefined = temp.shift()
+      const lastMove: ILog | undefined = temp.pop()
       AppState.logs = temp
 
       if (!lastMove) {
         throw new Error('This Board Is Unsolvable')
       }
       const { currentIndex, replaceIndex, capture }: ILog = lastMove
-      movesService.replacePiece(boardPieces[replaceIndex], currentIndex)
+      movesService.replacePiece(replaceIndex, currentIndex)
       movesService.addPiece(capture, replaceIndex)
     }
   }

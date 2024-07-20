@@ -3,16 +3,28 @@ import { AppState } from '../AppState'
 import { IChessPiece } from '../interfaces/IChessPiece'
 
 class MovesService {
-  replacePiece(newPiece: IChessPiece, replaceIndex: number): void {
-    this.addPiece(newPiece, replaceIndex)
-    this.removePiece(newPiece.id - 1)
+  replacePiece(currentIndex: number, replaceIndex: number): void {
+    const captor = AppState.boardPieces[currentIndex]
+    const capture = AppState.boardPieces[replaceIndex]
+    if (capture.name) {
+      AppState.logs = [
+        ...AppState.logs,
+        {
+          currentIndex,
+          replaceIndex,
+          capture,
+          captor
+        }
+      ]
+    }
+    this.addPiece(captor, replaceIndex)
+    this.removePiece(captor.id - 1)
   }
 
   addPiece(piece: IChessPiece, index: number): void {
     const temp = [...AppState.boardPieces]
     temp[index] = { id: index + 1, name: piece.name, tag: piece.tag }
     AppState.boardPieces = temp
-    // TODO Change to Binary Search Then Splice?
     AppState.pieces = AppState.boardPieces.filter(piece => piece.name)
   }
 
@@ -20,7 +32,6 @@ class MovesService {
     const temp = [...AppState.boardPieces]
     temp[index] = { id: index + 1, name: '', tag: React.createElement(React.Fragment) }
     AppState.boardPieces = temp
-    // TODO Change to Binary Search Then Splice?
     AppState.pieces = AppState.boardPieces.filter(piece => piece.name)
   }
 }

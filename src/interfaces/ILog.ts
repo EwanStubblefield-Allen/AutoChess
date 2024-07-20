@@ -4,4 +4,5 @@ export interface ILog {
   currentIndex: number
   replaceIndex: number
   capture: IChessPiece
+  captor: IChessPiece
 }

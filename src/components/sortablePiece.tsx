@@ -47,7 +47,6 @@ export default function SortablePiece({ piece }: { piece: IChessPiece }) {
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={tileBackground()}>
       {removePieceIcon()}
       {piece.tag}
-      <p className="position-absolute">{piece.id - 1}</p>
     </div>
   )
 }

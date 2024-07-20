@@ -1,4 +1,41 @@
 .chess-tile {
+  height: calc(25vw - 0.25rem);
   border: 1px solid black;
-  height: 15vh;
+}
+
+.logs {
+  height: 25vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff #111927;
+
+  section > div {
+    height: 8vh;
+  }
+}
+
+@media screen and (min-width: 576px) {
+  .chess-tile {
+    height: calc(16.66vw - 0.25rem);
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .chess-tile {
+    height: calc(12.5vw - 0.25rem);
+  }
+
+  .logs {
+    height: calc(50vw - 1rem);
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .chess-tile {
+    height: calc(8.33vw - 0.25rem);
+  }
+
+  .logs {
+    height: calc(33.33vw - 1rem);
+  }
 }

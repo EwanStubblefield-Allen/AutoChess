@@ -34,14 +34,14 @@ const App = observer(() => {
 
   function handleDragEnd({ active, over }: any) {
     if (active.id !== over.id) {
-      movesService.replacePiece(AppState.boardPieces[active.id - 1], over.id - 1)
+      movesService.replacePiece(active.id - 1, over.id - 1)
     }
   }
 
   function solve() {
     try {
-      if (AppState.pieces.length == 0) {
-        throw new Error('Add a piece to the board!')
+      if (AppState.pieces.length <= 1) {
+        throw new Error('Add more piece to the board!')
       }
       AppState.logs = []
       chessService.solveBoard()
@@ -52,56 +52,77 @@ const App = observer(() => {
     }
   }
 
+  function clearLogs() {
+    AppState.logs = []
+  }
+
   return (
-    <>
-      <header className="pt-4 text-center">
-        <button onClick={() => solve()} className="btn btn-primary">
-          Start
-        </button>
-      </header>
+    <div className="container-fluid d-flex flex-column justify-content-between vh-100">
+      <main className="row justify-content-around align-content-center">
+        <div className="col-sm-8 col-md-3 col-xl-2 p-2">
+          <div className="bg-dark rounded logs p-2">
+            <div className="d-flex justify-content-between">
+              <button onClick={solve} className="btn btn-outline-light">
+                Solve
+              </button>
 
-      <main className="container-fluid">
-        <section className="row px-3">
-          <div className="col-sm-2 col-md-3 col-lg-4"></div>
-          <div className="col-sm-8 col-md-6 col-lg-4">
-            <section className="row">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}>
-                <SortableContext items={AppState.boardPieces} strategy={rectSwappingStrategy}>
-                  {AppState.boardPieces.map(piece => (
-                    <SortablePiece key={piece.id} piece={piece} />
-                  ))}
-                </SortableContext>
-              </DndContext>
-            </section>
-          </div>
-          <div className="col-sm-2 col-md-3 col-lg-4"></div>
-        </section>
-      </main>
+              <button onClick={clearLogs} className="btn btn-outline-light">
+                Clear List
+              </button>
+            </div>
 
-      <footer className="container-fluid pb-4 fixed-bottom">
-        <section className="row justify-content-center px-3">
-          <div className="col-md-8 d-flex justify-content-center">
-            <section className="row">
-              {AppState.defaultPieces.map((piece, i) => (
-                <div
-                  onClick={() => movesService.addPiece(piece, 15)}
-                  key={piece.id}
-                  className={
-                    i % 2 == 1
-                      ? 'col-2 d-flex chess-tile selectable bg-dark'
-                      : 'col-2 d-flex chess-tile selectable'
-                  }>
-                  {piece.tag}
+            <p className="fs-3 text-decoration-underline">Move List:</p>
+            <section className="row mx-2">
+              {AppState.logs.map((log, i) => (
+                <div key={`log-${i}`} className="col-6 col-md-12 d-flex justify-content-center p-1">
+                  {log.captor.tag}
+                  <p className="d-flex align-self-center">
+                    {String.fromCharCode(
+                      (log.replaceIndex % Math.sqrt(AppState.boardPieces.length)) + 97
+                    ) + Math.floor(log.replaceIndex / 4 + 1)}
+                  </p>
                 </div>
               ))}
             </section>
           </div>
-        </section>
+        </div>
+
+        <div className="col-sm-8 col-md-6 col-xl-4">
+          <section className="row p-2">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}>
+              <SortableContext items={AppState.boardPieces} strategy={rectSwappingStrategy}>
+                {AppState.boardPieces.map(piece => (
+                  <SortablePiece key={piece.id} piece={piece} />
+                ))}
+              </SortableContext>
+            </DndContext>
+          </section>
+        </div>
+        <div className="col-md-3 col-xl-2"></div>
+      </main>
+
+      <footer className="row justify-content-center p-2">
+        <div className="col-md-8 d-flex justify-content-center">
+          <section className="row">
+            {AppState.defaultPieces.map((piece, i) => (
+              <div
+                onClick={() => movesService.addPiece(piece, 15)}
+                key={piece.id}
+                className={
+                  i % 2 == 1
+                    ? 'col-2 d-flex chess-tile selectable bg-dark'
+                    : 'col-2 d-flex chess-tile selectable'
+                }>
+                {piece.tag}
+              </div>
+            ))}
+          </section>
+        </div>
       </footer>
-    </>
+    </div>
   )
 })
 
